@@ -1,0 +1,44 @@
+version: "3.3"
+services:
+  kafka:
+    image: bitnami/kafka:latest
+    restart: always
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+      - "9998:9998"
+    volumes:
+      - ./kafka_data:/bitnami/kafka
+    environment:
+      - KAFAK_CFG_NODE_ID=1
+      - BITNAMI_DEBUG=true
+      - KAFKA_CFG_PROCESS_ROLES=broker,controller
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAME=CONTROLLER
+      - KAFKA_BRORKER_ID=1
+      - KAFKA_CFG_LISTENERS=CONTROLLER://:9094,BROKER://:9092,EXTERNAL://:9093
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,BROKER:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_CFG_ADVERTISED_LISTENERS=BROKER://kafka:9092,EXTERNAL://localhost:9093
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=BROKER
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@localhost:9093
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - JMX_PORT=9998
+      - KAFKA_JMX_OPTS=-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=localhost -Dcom.sun.management.jmxremote.port=9998
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    restart: always
+    ports:
+      - "9095:8080"
+    links:
+      - kafka
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
+      - KAFKA_CLUSTERS_0_METRICS_PORT=9998
+      - SERVER_SERVLET_CONTEXT_PATH=/kafkaui
+      - AUTH_TYPE="LOGIN_FORM"
+      - SPRING_SECURITY_USER_NAME=admin
+      - SPRING_SECURITY_USER_PASSWORD=admin
+      - DYNAMIC_CONFIG_ENABLED=true
+    volumes:
+      - ./kafka-ui-data:/kafka-ui
+
